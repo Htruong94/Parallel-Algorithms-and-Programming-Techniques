@@ -1,0 +1,14 @@
+/**********************************************************
+ * Name: Hung Truong
+ * Student ID: 147779193
+ * Workshop 3 - Reflection
+ * Date: June 11, 2021
+ * Email: htruong19@myseneca.ca
+ * GPU621 NSA
+ **********************************************************/
+
+After completing this workshop, I had a better understanding on what affects the performance of a serial code when implementing different settings. The setting that significantly improve the code is to set optimization within the compiler under the optimization tab in the file configuration properties. This is seen in the improvement across the 4 different codes. The next setting that is important in improving the code is to use the optimal ordering of iteration when dealing with nested iterations such that a simple interchange of two variables has improve the performance of the code in both the serial and OpenMP code. Then the next important setting is the use of OpenMP that generally improves the performance of a serial code when the code is implemented correctly but could also hurt the performance if not done so as seen in the O1 and O2 of serial no interchange and OpenMP no interchange codes. 
+
+Loop interchange made a significant in the code as i, j and k exist in the same cache for the nested iteration in the c++ program. This would mean that the array holding the iteration would be incrementing k first until the iteration is done before iterating j and then k. Because the b[k][j] portion exists in the equation of c[i][j] += a[i][k] * b[k][j], the program would have to go through every iteration until it hits the correct k value such that it would go through every k value for each j iteration. By interchanging the loop such that k precedes j, the b[k][j] would be able to travel to the correct k value first and then look for the j value within the k iteration. Since the travel is shorten, the performance should improve greatly as seen in the data observed in this workshop. 
+
+In this workshop, I have learnt the importance of knowing how cache is stored in C++ as a simple change in loop iteration would improve the performance of the code. I have also learnt how to implement different OpenMP directives dependent on the dependencies of the data in loop iteration. 
