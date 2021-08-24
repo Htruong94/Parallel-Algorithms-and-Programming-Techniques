@@ -1,0 +1,11 @@
+  
+/**********************************************************
+ * Name: Hung Truong
+ * Student ID: 147779193
+ * Workshop 1 Reflection
+ * Date: May 26, 2021
+ * Email: htruong19@myseneca.ca
+ * GPU621 NSA
+ **********************************************************/
+
+In this workshop, I have learnt how to install and implement a different compiler into visual studio through Intel OneApi software and see the difference between three compilers, including GCC, in performance. With the difference, I have also learnt that each compiler has their own pre-processor macros which would allow for specific platforms to run dependant on the macro. The chrono library was covered in the OOP345 course so I had an understanding on how the given code runs and gives me a better idea on the importance of the library to physically learn the difference between time between compilers and optimizations. Finally, I also learnt how to use optimization for the 3 compilers which allows for faster run time in all cases with optimization but there is a limit on how much optimization can be implemented.

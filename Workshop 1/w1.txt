@@ -1,0 +1,276 @@
+/**********************************************************
+ * Name: Hung Truong
+ * Student ID: 147779193
+ * Workshop 1
+ * Date: May 26, 2021
+ * Email: htruong19@myseneca.ca
+ * GPU621 NSA
+ **********************************************************/
+
+// Workshop 1 - Platforms and Optimizations 
+ // w1.cpp - source code
+
+#include <iostream>
+#include <cmath>
+#include <chrono>
+using namespace std::chrono;
+
+class Version {
+public:
+    void operator()() const {
+        std::cout << "Hello from the ";
+#if defined(__GNUC__)           // for GCC 9.1.0
+        std::cout << "GCC compiler: ";   // Insert compiler name
+        std::cout << __GNUC__ << "." << __GNUC_MINOR__ << "." << __GNUC_PATCHLEVEL__ << "\n"; // Insert version.revision.patch 
+
+#elif defined(__INTEL_LLVM_COMPILER)         // for Intel Parallel Studio
+        std::cout << "Intel compiler: ";   // Insert compiler name
+        std::cout << __INTEL_LLVM_COMPILER << "\n"; // Insert version.revision.patch 
+
+#elif defined(_MSC_VER)         // for Visual Studio
+        std::cout << "Visual Studio compiler: ";   // Insert compiler name
+        std::cout << _MSC_FULL_VER << "\n"; // Insert version.revision.patch 
+
+#else
+        std::cout << "Other compiler: ";   // None of the above
+#endif
+    }
+};
+
+// report system time
+//
+void reportTime(const char* msg, steady_clock::duration span) {
+    auto ms = duration_cast<milliseconds>(span);
+    std::cout << msg << " - took - " <<
+        ms.count() << " milliseconds" << std::endl;
+}
+
+double magnitude(const double* x, int n) {
+    double sum = 0.0;
+    for (int i = 0; i < n; i++)
+        sum += x[i] * x[i];
+    return sqrt(sum);
+}
+
+int main(int argc, char* argv[]) {
+    Version version;
+    version();
+    if (argc != 2) {
+        std::cerr << argv[0] << ": invalid number of arguments\n";
+        std::cerr << "Usage: " << argv[0] << "  no_of_elements\n";
+        return 1;
+    }
+    int n = std::atoi(argv[1]); // number of elements in a 
+    steady_clock::time_point ts, te;
+
+    // allocate memory
+    ts = steady_clock::now();
+    double* a = new double[n];
+
+    // populate vector a
+    for (int i = 0; i < n; i++)
+        a[i] = 1.0;
+    te = steady_clock::now();
+    reportTime(" - allocation and initialization", te - ts);
+
+    // determine magnitude
+    ts = steady_clock::now();
+    double length = magnitude(a, n);
+    te = steady_clock::now();
+    reportTime(" - magnitude calculation", te - ts);
+
+    // display result
+    std::cout << "Magnitude of a[" << n << "] = " << length << std::endl;
+
+    // deallocate host memory
+    delete[] a;
+}
+
+////////////////////////////////////////////////////////////////////
+
+Visual Studio Compiler Results
+
+No Optimization
+Hello from the Visual Studio compiler: 192829334
+ - allocation and initialization - took - 9 milliseconds
+ - magnitude calculation - took - 15 milliseconds
+Magnitude of a[5000000] = 2236.07
+
+Hello from the Visual Studio compiler: 192829334
+ - allocation and initialization - took - 19 milliseconds
+ - magnitude calculation - took - 30 milliseconds
+Magnitude of a[10000000] = 3162.28
+
+Hello from the Visual Studio compiler: 192829334
+ - allocation and initialization - took - 28 milliseconds
+ - magnitude calculation - took - 46 milliseconds
+Magnitude of a[15000000] = 3872.98
+
+Optimization
+
+Hello from the Visual Studio compiler: 192829334
+ - allocation and initialization - took - 4 milliseconds
+ - magnitude calculation - took - 5 milliseconds
+Magnitude of a[5000000] = 2236.07
+
+Hello from the Visual Studio compiler: 192829334
+ - allocation and initialization - took - 9 milliseconds
+ - magnitude calculation - took - 10 milliseconds
+Magnitude of a[10000000] = 3162.28
+
+Hello from the Visual Studio compiler: 192829334
+ - allocation and initialization - took - 14 milliseconds
+ - magnitude calculation - took - 15 milliseconds
+Magnitude of a[15000000] = 3872.98
+
+Severe Optimization
+
+Hello from the Visual Studio compiler: 192829334
+ - allocation and initialization - took - 4 milliseconds
+ - magnitude calculation - took - 5 milliseconds
+Magnitude of a[5000000] = 2236.07
+
+Hello from the Visual Studio compiler: 192829334
+ - allocation and initialization - took - 9 milliseconds
+ - magnitude calculation - took - 10 milliseconds
+Magnitude of a[10000000] = 3162.28
+
+Hello from the Visual Studio compiler: 192829334
+ - allocation and initialization - took - 13 milliseconds
+ - magnitude calculation - took - 15 milliseconds
+Magnitude of a[15000000] = 3872.98
+
+////////////////////////////////////////////////////////////////////
+
+Intel Compiler Results
+
+No Optimization
+
+Hello from the Intel compiler: 20210200
+ - allocation and initialization - took - 9 milliseconds
+ - magnitude calculation - took - 11 milliseconds
+Magnitude of a[5000000] = 2236.07
+
+Hello from the Intel compiler: 20210200
+ - allocation and initialization - took - 20 milliseconds
+ - magnitude calculation - took - 24 milliseconds
+Magnitude of a[10000000] = 3162.28
+
+Hello from the Intel compiler: 20210200
+ - allocation and initialization - took - 30 milliseconds
+ - magnitude calculation - took - 36 milliseconds
+Magnitude of a[15000000] = 3872.98
+
+Optimization
+
+Hello from the Intel compiler: 20210200
+ - allocation and initialization - took - 6 milliseconds
+ - magnitude calculation - took - 3 milliseconds
+Magnitude of a[5000000] = 2236.07
+
+Hello from the Intel compiler: 20210200
+ - allocation and initialization - took - 15 milliseconds
+ - magnitude calculation - took - 6 milliseconds
+Magnitude of a[10000000] = 3162.28
+
+Hello from the Intel compiler: 20210200
+ - allocation and initialization - took - 20 milliseconds
+ - magnitude calculation - took - 9 milliseconds
+Magnitude of a[15000000] = 3872.98
+
+Severe Optimization
+
+Hello from the Intel compiler: 20210200
+ - allocation and initialization - took - 6 milliseconds
+ - magnitude calculation - took - 2 milliseconds
+Magnitude of a[5000000] = 2236.07
+
+Hello from the Intel compiler: 20210200
+ - allocation and initialization - took - 14 milliseconds
+ - magnitude calculation - took - 7 milliseconds
+Magnitude of a[10000000] = 3162.28
+
+Hello from the Intel compiler: 20210200
+ - allocation and initialization - took - 21 milliseconds
+ - magnitude calculation - took - 9 milliseconds
+Magnitude of a[15000000] = 3872.98
+
+
+////////////////////////////////////////////////////////////////////
+
+GCC Compiler Results
+
+No Optimization
+
+Hello from the GCC compiler: 10.2.0
+ - allocation and initialization - took - 25 milliseconds
+ - magnitude calculation - took - 19 milliseconds
+Magnitude of a[5000000] = 2236.07
+
+Hello from the GCC compiler: 10.2.0
+ - allocation and initialization - took - 43 milliseconds
+ - magnitude calculation - took - 36 milliseconds
+Magnitude of a[10000000] = 3162.28
+
+Hello from the GCC compiler: 10.2.0
+ - allocation and initialization - took - 62 milliseconds
+ - magnitude calculation - took - 54 milliseconds
+Magnitude of a[15000000] = 3872.98
+
+
+Optimization
+
+Hello from the GCC compiler: 10.2.0
+ - allocation and initialization - took - 13 milliseconds
+ - magnitude calculation - took - 7 milliseconds
+Magnitude of a[5000000] = 2236.07
+
+Hello from the GCC compiler: 10.2.0
+ - allocation and initialization - took - 25 milliseconds
+ - magnitude calculation - took - 16 milliseconds
+Magnitude of a[10000000] = 3162.28
+
+Hello from the GCC compiler: 10.2.0
+ - allocation and initialization - took - 37 milliseconds
+ - magnitude calculation - took - 24 milliseconds
+Magnitude of a[15000000] = 3872.98
+
+
+Severe Optimization
+
+Hello from the GCC compiler: 10.2.0
+ - allocation and initialization - took - 17 milliseconds
+ - magnitude calculation - took - 7 milliseconds
+Magnitude of a[5000000] = 2236.07
+
+Hello from the GCC compiler: 10.2.0
+ - allocation and initialization - took - 23 milliseconds
+ - magnitude calculation - took - 14 milliseconds
+Magnitude of a[10000000] = 3162.28
+
+Hello from the GCC compiler: 10.2.0
+ - allocation and initialization - took - 32 milliseconds
+ - magnitude calculation - took - 21 milliseconds
+Magnitude of a[15000000] = 3872.98
+
+////////////////////////////////////////////////////////////////////
+//Compiler Results Table
+
+Compiler	n		Without Optimization	With Optimization	With Severe Optimization
+
+Microsoft
+Visual
+Studio		5,000,000	15			5		 	5
+		10,000,000	30		 	10			10 	 	
+		15,000,000	46			15			15
+
+Intel
+OneApi
+		5,000,000	9			3			2 	 	 
+		10,000,000	24			6			7 	 	 
+		15,000,000	36			9			9 
+	 	 
+GCC 10.2.0	
+		5,000,000	19			7	 		7	 
+		10,000,000	36	 		16 			14
+		15,000,000	54			24			21
