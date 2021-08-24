@@ -1,0 +1,389 @@
+// Workshop 9 - Discretize the Elements of an Array
+// Chris Szalwinski
+// 2020/11/27
+// w9.mpi.c
+// Hung Truong - 147779193
+// 2021/08/07 - Added MPI functionality
+
+#include "stdio.h"
+#include "stdlib.h"
+#include "math.h"
+#include "mpi.h"
+#define TIME 1
+
+// report processor time
+//
+void reportTime(const char* msg, int i, double span) {
+    printf("Process %d: %-12s took %7.4lf seconds\n", i, msg, span);
+}
+
+// discretize data[n] into 0s and 1s
+//
+void discretize(float* data, int n) {
+    for (int i = 0; i < n; i++)
+        data[i] = (pow(sin(data[i]), cos(data[i])) +
+            pow(cos(data[i]), sin(data[i]))) / 2.0f;
+}
+
+void err(MPI_Comm* comm, int* err, ...) {
+    printf("Error code %d\n", *err);
+}
+
+int main(int argc, char** argv) {
+    if (argc != 2) {
+        fprintf(stderr, "%s : invalid number of arguments\n"
+            "Usage: %s no_of_elements\n", argv[0], argv[0]);
+        return 1;
+    }
+
+    // retrieve number of elements
+    int n = atoi(argv[1]);
+
+    int rank, np;
+    //
+    // initialize MPI
+    //
+
+    MPI_Status status;
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &np);
+
+    int nPerProcess = n / np;
+    n = nPerProcess * np;
+    int zeroes = 0;
+    float* data = NULL;
+    float* result = NULL;
+
+    // get MPI wall clock time start
+
+    double begin = MPI_Wtime();
+
+    if (rank == 0) {
+        // initialization
+
+        // get MPI allocation time start
+
+        double aBegin = MPI_Wtime();
+
+        data = (float*)malloc(n * sizeof(float));
+        result = (float*)malloc(n * sizeof(float));
+        // set original data
+        for (int i = 0; i < n; i++)
+            data[i] = (float)rand() / RAND_MAX;
+
+        // get MPI allocation time end
+
+        double aEnd = MPI_Wtime();
+
+        reportTime("Allocation", 0, aEnd - aBegin);
+
+        // conversion
+
+        // get MPI time start
+
+        double cStart = MPI_Wtime();
+
+        // scatter original data to all workers including master
+        MPI_Scatter(data, nPerProcess, MPI_FLOAT,
+            MPI_IN_PLACE, 0, MPI_FLOAT, 0, MPI_COMM_WORLD);
+
+        discretize(data, nPerProcess);
+
+        // gather converted data from all workers
+
+        MPI_Gather(data, nPerProcess, MPI_FLOAT,
+            result, nPerProcess, MPI_FLOAT, 0, MPI_COMM_WORLD);
+
+        // get MPI time end
+
+        double cEnd = MPI_Wtime();
+
+        // identify 0s and 1s
+        for (int i = 0; i < nPerProcess; i++)
+            if (data[i] < 0.707f)
+                zeroes++;
+        for (int i = nPerProcess; i < n; i++)
+            if (result[i] < 0.707f)
+                zeroes++;
+
+        // report timing statistics
+
+        // error handler declaration
+        MPI_Errhandler error;
+        MPI_Comm_create_errhandler(err, &error);
+        MPI_Comm_set_errhandler(MPI_COMM_WORLD, error);
+
+        double totalTime = 0, time = 0.0;
+        reportTime("Conversion", 0, cEnd - cStart);
+        for (int i = 1; i < np; i++) {
+
+            // collect time for process 
+            MPI_Recv(&time, 1, MPI_DOUBLE, MPI_ANY_SOURCE, MPI_ANY_TAG,
+                MPI_COMM_WORLD, &status);
+            reportTime("Process time", i, time);
+            totalTime += time;
+        }
+        reportTime("Sum of All", 0, totalTime);
+    }
+    else {
+        // worker process
+        float* data = (float*)malloc(nPerProcess * sizeof(float));
+
+        // get MPI time
+        double st = MPI_Wtime();
+
+        // scatter receiver of original data
+        MPI_Scatter(NULL, nPerProcess, MPI_INT, data,
+            nPerProcess, MPI_FLOAT, 0, MPI_COMM_WORLD);
+
+        discretize(data, nPerProcess);
+
+        // gather converted data and send to master
+        MPI_Gather(data, nPerProcess, MPI_FLOAT, NULL,
+            nPerProcess, MPI_INT, 0, MPI_COMM_WORLD);
+
+        // get MPI time
+        double et = MPI_Wtime();
+        double time = et - st;
+
+        free(data);
+
+        // report time
+        reportTime("Conversion", 0, time);
+
+        // send time to master
+        MPI_Send(&time, 1, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
+    }
+
+    // get MPI wall clock time end
+
+    double end = MPI_Wtime();
+
+    if (rank == 0) {
+        reportTime("Conversion Time - Wall clock", 0, end - begin);
+
+        // get MPI deallocation time start
+
+        double st = MPI_Wtime();
+
+        free(data);
+        free(result);
+
+        // get MPI deallocation time end
+
+        double et = MPI_Wtime();
+
+        reportTime("Deallocation", 0, et - st);
+        printf("Result: %d = %d (0s) + %d (1s)\n", n, zeroes, n - zeroes);
+    }
+
+    // close MPI
+    MPI_Finalize();
+    return 0;
+}
+
+
+////////////////////////////////////////////////////////////////
+
+SERIAL ARRAY SIZE 100000
+
+Initialization took  0.0010 seconds
+Conversion     took  0.0100 seconds
+100000 = 42950 0s + 57050 1s
+
+////////////////////////////////////////////////////////////////
+SERIAL ARRAY SIZE 1000000
+
+Initialization took  0.0140 seconds
+Conversion     took  0.1020 seconds
+1000000 = 431879 0s + 568121 1s
+
+////////////////////////////////////////////////////////////////
+SERIAL ARRAY SIZE 10000000
+
+Initialization took  0.1460 seconds
+Conversion     took  1.0120 seconds
+10000000 = 4321373 0s + 5678627 1s
+
+////////////////////////////////////////////////////////////////
+MPI 4 ARRAY SIZE 100000
+
+Process 0: Conversion   took  0.0035 seconds
+Process 0: Conversion   took  0.0036 seconds
+Process 0: Allocation   took  0.0016 seconds
+Process 0: Conversion   took  0.0020 seconds
+Process 1: Process time took  0.0035 seconds
+Process 2: Process time took  0.0037 seconds
+Process 3: Process time took  0.0036 seconds
+Process 0: Sum of All   took  0.0107 seconds
+Process 0: Conversion Time - Wall clock took  0.0043 seconds
+Process 0: Deallocation took  0.0000 seconds
+Result: 100000 = 42950 (0s) + 57050 (1s)
+Process 0: Conversion   took  0.0037 seconds
+
+////////////////////////////////////////////////////////////////
+MPI 4 ARRAY SIZE 1000000
+
+Process 0: Conversion   took  0.0326 seconds
+Process 0: Conversion   took  0.0320 seconds
+Process 0: Allocation   took  0.0154 seconds
+Process 0: Conversion   took  0.0177 seconds
+Process 1: Process time took  0.0320 seconds
+Process 2: Process time took  0.0332 seconds
+Process 3: Process time took  0.0326 seconds
+Process 0: Sum of All   took  0.0978 seconds
+Process 0: Conversion Time - Wall clock took  0.0391 seconds
+Process 0: Deallocation took  0.0002 seconds
+Result: 1000000 = 431879 (0s) + 568121 (1s)
+Process 0: Conversion   took  0.0332 seconds
+
+////////////////////////////////////////////////////////////////
+MPI 4 ARRAY SIZE 10000000
+
+Process 0: Conversion   took  0.3387 seconds
+Process 0: Conversion   took  0.3371 seconds
+Process 0: Allocation   took  0.1558 seconds
+Process 0: Conversion   took  0.1892 seconds
+Process 1: Process time took  0.3371 seconds
+Process 2: Process time took  0.3387 seconds
+Process 3: Process time took  0.3452 seconds
+Process 0: Sum of All   took  1.0210 seconds
+Process 0: Conversion Time - Wall clock took  0.4021 seconds
+Process 0: Deallocation took  0.0019 seconds
+Result: 10000000 = 4321373 (0s) + 5678627 (1s)
+Process 0: Conversion   took  0.3452 seconds
+
+////////////////////////////////////////////////////////////////
+MPI 6 ARRAY SIZE 100000
+
+Process 0: Allocation   took  0.0016 seconds
+Process 0: Conversion   took  0.0023 seconds
+Process 1: Process time took  0.0033 seconds
+Process 2: Process time took  0.0037 seconds
+Process 3: Process time took  0.0039 seconds
+Process 4: Process time took  0.0040 seconds
+Process 5: Process time took  0.0038 seconds
+Process 0: Sum of All   took  0.0187 seconds
+Process 0: Conversion Time - Wall clock took  0.0046 seconds
+Process 0: Deallocation took  0.0000 seconds
+Result: 99996 = 42946 (0s) + 57050 (1s)
+Process 0: Conversion   took  0.0040 seconds
+Process 0: Conversion   took  0.0038 seconds
+Process 0: Conversion   took  0.0037 seconds
+Process 0: Conversion   took  0.0039 seconds
+Process 0: Conversion   took  0.0033 seconds
+
+////////////////////////////////////////////////////////////////
+MPI 6 ARRAY SIZE 1000000
+
+Process 0: Conversion   took  0.0270 seconds
+Process 0: Allocation   took  0.0156 seconds
+Process 0: Conversion   took  0.0128 seconds
+Process 1: Process time took  0.0266 seconds
+Process 2: Process time took  0.0270 seconds
+Process 3: Process time took  0.0276 seconds
+Process 4: Process time took  0.0281 seconds
+Process 5: Process time took  0.0284 seconds
+Process 0: Sum of All   took  0.1377 seconds
+Process 0: Conversion Time - Wall clock took  0.0342 seconds
+Process 0: Deallocation took  0.0002 seconds
+Result: 999996 = 431877 (0s) + 568119 (1s)
+Process 0: Conversion   took  0.0276 seconds
+Process 0: Conversion   took  0.0266 seconds
+Process 0: Conversion   took  0.0281 seconds
+Process 0: Conversion   took  0.0284 seconds
+
+////////////////////////////////////////////////////////////////
+MPI 6 ARRAY SIZE 10000000
+
+Process 0: Allocation   took  0.1635 seconds
+Process 0: Conversion   took  0.1299 seconds
+Process 1: Process time took  0.2808 seconds
+Process 2: Process time took  0.2843 seconds
+Process 3: Process time took  0.2867 seconds
+Process 4: Process time took  0.2902 seconds
+Process 5: Process time took  0.2937 seconds
+Process 0: Sum of All   took  1.4357 seconds
+Process 0: Conversion Time - Wall clock took  0.3504 seconds
+Process 0: Deallocation took  0.0019 seconds
+Result: 9999996 = 4321371 (0s) + 5678625 (1s)
+Process 0: Conversion   took  0.2867 seconds
+Process 0: Conversion   took  0.2808 seconds
+Process 0: Conversion   took  0.2902 seconds
+Process 0: Conversion   took  0.2937 seconds
+Process 0: Conversion   took  0.2843 seconds
+
+////////////////////////////////////////////////////////////////
+MPI 8 ARRAY SIZE 100000
+
+Process 0: Conversion   took  0.0037 seconds
+Process 0: Conversion   took  0.0032 seconds
+Process 0: Conversion   took  0.0034 seconds
+Process 0: Conversion   took  0.0038 seconds
+Process 0: Conversion   took  0.0036 seconds
+Process 0: Conversion   took  0.0030 seconds
+Process 0: Conversion   took  0.0031 seconds
+Process 0: Allocation   took  0.0018 seconds
+Process 0: Conversion   took  0.0020 seconds
+Process 1: Process time took  0.0030 seconds
+Process 2: Process time took  0.0031 seconds
+Process 3: Process time took  0.0032 seconds
+Process 4: Process time took  0.0034 seconds
+Process 5: Process time took  0.0036 seconds
+Process 6: Process time took  0.0038 seconds
+Process 7: Process time took  0.0037 seconds
+Process 0: Sum of All   took  0.0238 seconds
+Process 0: Conversion Time - Wall clock took  0.0045 seconds
+Process 0: Deallocation took  0.0000 seconds
+Result: 100000 = 42950 (0s) + 57050 (1s)
+
+////////////////////////////////////////////////////////////////
+MPI 8 ARRAY SIZE 1000000
+
+Process 0: Conversion   took  0.0244 seconds
+Process 0: Allocation   took  0.0157 seconds
+Process 0: Conversion   took  0.0110 seconds
+Process 1: Process time took  0.0244 seconds
+Process 2: Process time took  0.0256 seconds
+Process 3: Process time took  0.0256 seconds
+Process 4: Process time took  0.0259 seconds
+Process 5: Process time took  0.0264 seconds
+Process 6: Process time took  0.0269 seconds
+Process 7: Process time took  0.0261 seconds
+Process 0: Sum of All   took  0.1808 seconds
+Process 0: Conversion Time - Wall clock took  0.0327 seconds
+Process 0: Deallocation took  0.0003 seconds
+Result: 1000000 = 431879 (0s) + 568121 (1s)
+Process 0: Conversion   took  0.0256 seconds
+Process 0: Conversion   took  0.0269 seconds
+Process 0: Conversion   took  0.0261 seconds
+Process 0: Conversion   took  0.0256 seconds
+Process 0: Conversion   took  0.0259 seconds
+Process 0: Conversion   took  0.0264 seconds
+
+////////////////////////////////////////////////////////////////
+MPI 8 ARRAY SIZE 10000000
+
+Process 0: Conversion   took  0.2639 seconds
+Process 0: Conversion   took  0.2631 seconds
+Process 0: Conversion   took  0.2611 seconds
+Process 0: Conversion   took  0.2589 seconds
+Process 0: Allocation   took  0.1558 seconds
+Process 0: Conversion   took  0.1128 seconds
+Process 1: Process time took  0.2587 seconds
+Process 2: Process time took  0.2611 seconds
+Process 3: Process time took  0.2589 seconds
+Process 4: Process time took  0.2639 seconds
+Process 5: Process time took  0.2690 seconds
+Process 6: Process time took  0.2600 seconds
+Process 7: Process time took  0.2631 seconds
+Process 0: Sum of All   took  1.8347 seconds
+Process 0: Conversion Time - Wall clock took  0.3265 seconds
+Process 0: Deallocation took  0.0037 seconds
+Result: 10000000 = 4321373 (0s) + 5678627 (1s)
+Process 0: Conversion   took  0.2587 seconds
+Process 0: Conversion   took  0.2600 seconds
+Process 0: Conversion   took  0.2690 seconds
+
+////////////////////////////////////////////////////////////////

@@ -1,0 +1,10 @@
+/**********************************************************
+ * Name: Hung Truong
+ * Student ID: 147779193
+ * Workshop 9 - Reflection
+ * Date: August 07, 2021
+ * Email: htruong19@myseneca.ca
+ * GPU621 NSA
+ **********************************************************/
+
+	In this workshop, the continuation of exploring the MPI library was carried out as the workshop introduces scatter and gather collectives when implementing MPI SPMD into the c source code. As a result, I have learnt how to perform the scatter and gather collectives along side the other MPI collectives learnt in the previous workshop. When working with the MPI library, the array was not fully divided between each thread if the array size is not divisible by the number of threads as seen when trying to use a thread size of 6 and 4 elements were not operated on. The results from the MPI SPMD model shows a significant improvement in performance between the serial and MPI code but the performance increase when increasing the number of threads used is less significant. The performance may increase when calculations are more complex but the singular for loop for each thread did not change the performance between the increase of threads.
