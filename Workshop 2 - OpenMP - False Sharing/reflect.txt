@@ -1,0 +1,10 @@
+/**********************************************************
+ * Name: Hung Truong
+ * Student ID: 147779193
+ * Workshop 2 - Reflection
+ * Date: June 04, 2021
+ * Email: htruong19@myseneca.ca
+ * GPU621 NSA
+ **********************************************************/
+
+In this workshop, I have learnt how to use the omp library to implement OpenMP for multithreading onto an algorithm in the form of calculation of Pi. The naive version of OpenMP shown me the negative of using this method as it causes false sharing as the data is being written on the same cache line. Using patted method is a way to have each element is on a different cache line if the knowledge of the size of the cache line. But synchronization method provides another solution to the false sharing but allows the code to have the similar performance to the padded method without knowing the size of the cache line through the "#pragma omp critical". As such, the workshop shows me that the different methods of OpenMP parallel programming have similar performance with the slight edge to padded and synchronization when the compiler is running its highest optimization while having no optimization giving the non-false sharing methods a better performance to naive in multithreading.
