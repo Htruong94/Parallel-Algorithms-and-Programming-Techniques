@@ -1,0 +1,12 @@
+/**********************************************************
+ * Name: Hung Truong
+ * Student ID: 147779193
+ * Workshop 7 - Reflection
+ * Date: August 01, 2021
+ * Email: htruong19@myseneca.ca
+ * GPU621 NSA
+ **********************************************************/
+
+	In this workshop, the concept of MPI is being introduced and implemented to a code that is a solution to the two-dimensional heat equation through domain decomposition using partitioned MPI implementation. As this is the first workshop that deals with MPI, I was taught how to properly implement MPI into a serial code using the functions found in the MPI library, such as MPI_Recv and MPI_Send, and how to execute the code through the mpiexec.exe file. 
+
+	In the code, the use of double buffering was implemented to the data variable such that the data would have double the size of the elements in contains. This was utilized to have two buffer that would run immediately onto the next data without the need of waiting for the process in the other buffer to be completed. Tags were also used in the code that sends a message to the communicator dependent on the type of message that is being transferred. As such, these tags were used in storing different messages to be used in MPI_Send and MPI_Recv that is stored in an integer constant that would identify the message as either MASTER, NONE, BEGIN, ABOVE or END. The messages sent to the workers from master sends a total of 5 messages which tells the worker to retrieve the row offset, the number of rows, the ids of the above and below the neighbour and the data collected from a source. In return, the worker sends that information that would collect the data and the data back to the MASTER. The inequivalent exchange of the two is caused as the neighboring IDs are not necessary for the data being collected for the MASTER but is necessary for the worker so the worker would send less message back to the master as a result.
