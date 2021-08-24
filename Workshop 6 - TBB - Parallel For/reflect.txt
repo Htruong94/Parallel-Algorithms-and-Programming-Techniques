@@ -1,0 +1,11 @@
+/**********************************************************
+ * Name: Hung Truong
+ * Student ID: 147779193
+ * Workshop 6 - Reflection
+ * Date: July 17, 2021
+ * Email: htruong19@myseneca.ca
+ * GPU621 NSA
+ **********************************************************/
+
+	In this workshop, we are introduced to the threading building blocks to implement parallel programming towards an algorithm. As such, this workshop focuses on the parallel_for function of the TBB library as well as the blocked range that is perform along side the function. The blocked range allows for a certain amount of grain to be perform in parallel on the parallel_for function so that a for loop can run in parallel like in other techniques learnt prior. Blocked range also sets a simple range of data to be worked upon. The functor used in this workshop allows for the calling of an object would trigger a function defined for the object. In this case, when using the parallel_for TBB function on an object, the object would call a function which would perform the task as a function object. 
+	As this is the first workshop dealing with the TBB library, I have learnt how TBB functions are called and how the syntax differs from other parallel techniques. As such, I have mainly learnt the usage of the parallel_for and blocked_range functions of the TBB library and how to implement it to a code.
