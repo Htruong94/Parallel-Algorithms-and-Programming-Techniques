@@ -1,0 +1,10 @@
+/**********************************************************
+ * Name: Hung Truong
+ * Student ID: 147779193
+ * Workshop 4 - Reflection
+ * Date: June 25, 2021
+ * Email: htruong19@myseneca.ca
+ * GPU621 NSA
+ **********************************************************/
+
+	In this workshop, I learn how different modifications with OMP constructs to the SPMD, Work-Sharing and SIMD scan algorithms affects the performance of inclusive and exclusive scan in comparison towards the normal serial code. The first thing I have noticed in this workshop, the intel compiler optimization is already improving the performance of the code already and the OMP header hits the performance as of result in this case due to the serial code having a faster timing than the other algorithm with the same settings. This may change when dealing with a higher amount of data in the data set as there are only 9 data points being scanned. On the other hand, SIMD scan algorithm with SIMD and scan constructs receives the poorest performance out of the 5 projects. This shows the performance difference in comparison with using work-sharing algorithms and SPMD algorithm as it is only using one thread in comparison to the work-sharing SIMD algorithm and does not have the three-step algorithm found in the SPMD model. Aside from the serial and normal SIMD algorithms, the SPMD and both work-sharing models share similar performance.
