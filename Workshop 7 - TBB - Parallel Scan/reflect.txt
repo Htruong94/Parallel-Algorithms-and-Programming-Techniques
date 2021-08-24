@@ -1,0 +1,11 @@
+/**********************************************************
+ * Name: Hung Truong
+ * Student ID: 147779193
+ * Workshop 7 - Reflection
+ * Date: July 22, 2021
+ * Email: htruong19@myseneca.ca
+ * GPU621 NSA
+ **********************************************************/
+
+	In this workshop, we look into the parallel_scan algorithm in the TBB library. To take advantage of this algorithm, a templated Body functor has to be constructed which contains multiple constructors, functions and call operators to perform the algorithm. By adjusting the grain size of the TBB, the performance would slightly be altered to a degree depending on the size of data being worked on. A certain amount of grainsize is required for each array size to meet the best performance as seen in the performance hit when the grainsize is too large or too small for the data set. When comparing the TBB solution to the SPMD OpenMP solution, the SPMD OpenMP results outperforms the TBB solution when not in auto grainsize selection but when the solution has the right grainsize, the performance is drastically improved out of all solution. 
+	Dissecting the template Body Functor, it consists of a constructor that takes 4 parameters to initialize its 5 private variables. Another constructor deals with the splitting of another Body Functor object. A call operator is used to perform the task within a certain range. A reverse_join function is used to combine 2 accumul variables between 2 Body functor objects. Assign function sets the accumul variable to another body functor object accumul value. Lastly, a get_accumul function that returns the accumul value.

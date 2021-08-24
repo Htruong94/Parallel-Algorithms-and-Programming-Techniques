@@ -1,0 +1,223 @@
+// Workshop 7 - Prefix Scan Comparison
+ // w7.tbb.cpp
+ // 2018.11.04
+ // Chris Szalwinski
+ // 2021.07.22
+ // Hung Truong - Completed tbb::parallel_scan statements.
+
+#include <iostream>
+#include <chrono>
+#include "Body.h"
+
+// report system time
+//
+void reportTime(const char* msg, std::chrono::steady_clock::duration span) {
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(span);
+    std::cout << msg << " - took - " <<
+        ms.count() << " milliseconds" << std::endl;
+}
+
+int main(int argc, char** argv) {
+    if (argc > 3) {
+        std::cerr << argv[0] << ": invalid number of arguments\n";
+        std::cerr << "Usage: " << argv[0] << "\n";
+        std::cerr << "Usage: " << argv[0] << " power_of_2\n";
+        std::cerr << "Usage: " << argv[0] << " power_of_2 grainsize\n";
+        return 1;
+    }
+    if (argc == 3)
+        std::cout << "TBB Prefix Scan - grainsize = "
+        << std::atoi(argv[2]) << std::endl;
+    else
+        std::cout << "TBB Prefix Scan - auto partitioning" << std::endl;
+
+    // initial values for testing
+    const int N = 8;
+    const int in_[N]{ 3, 1, 7, 0, 1, 4, 5, 9 };
+
+    // command line arguments - none for testing, 1 for large arrays
+    int n;
+    if (argc == 1) {
+        n = N;
+    }
+    else {
+        n = 1 << std::atoi(argv[1]);
+        if (n < N) n = N;
+    }
+    int* in = new int[n];
+    int* out = new int[n];
+
+    // initialize
+    for (int i = 0; i < N; i++)
+        in[i] = in_[i];
+    for (int i = N; i < n; i++)
+        in[i] = 1;
+    auto add = [](int a, int b) { return a + b; };
+
+    // Inclusive Prefix Scan
+    std::chrono::steady_clock::time_point ts, te;
+    ts = std::chrono::steady_clock::now();
+    Body<int, decltype(add)> body(out, in, 0, add);
+    if (argc == 3)
+        tbb::parallel_scan(tbb::blocked_range<int>(0,n), body
+        );
+    else
+        tbb::parallel_scan(tbb::blocked_range<int>(0,N), body
+        );
+    te = std::chrono::steady_clock::now();
+    std::cout << "n = " << n << ": ";
+    for (int i = 0; i < N; i++)
+        std::cout << out[i] << ' ';
+    std::cout << out[n - 1] << std::endl;
+    reportTime("Inclusive Prefix Scan", te - ts);
+
+    delete[] in;
+    delete[] out;
+}
+
+///////////////////////////////////////////////////////////////////
+#pragma once
+
+// Workshop 7 - Prefix Scan Comparison
+ // w7.body.h
+ // 2021.07.22
+ // Hung Truong
+
+#include <tbb/tbb.h>
+#include <tbb/parallel_reduce.h>
+
+template<typename T, typename C>
+class Body {
+	T accumul;
+	T* const out;
+	const T* const in;
+	const T identity;
+	const C combine;
+public:
+
+	Body(T* o, const T* i, T id, C c) : 
+		accumul(id), out(o), in(i), identity(id), combine(c) {};
+	
+	Body(Body& b, tbb::split) :
+		accumul(b.identity), out(b.out), in(b.in), identity(b.identity), combine(b.combine) {}
+	
+	template<typename Tag>
+		void operator()(const tbb::blocked_range<int>& r, Tag) {
+		T temp = accumul;
+		for (int i = r.begin(); i != r.end(); i++) {
+			temp = combine(temp, in[i]);
+			if (Tag::is_final_scan()) {
+				out[i] = temp;
+			}
+			accumul = temp;
+		}
+	}
+
+	void reverse_join(Body& a) {
+		accumul = combine(accumul, a.accumul);
+	}
+
+	void assign(Body& b) {
+		accumul = b.accumul;
+	}
+
+	T get_accumul() const {
+		return accumul;
+	}
+};
+
+///////////////////////////////////////////////////////////
+Results:
+///////////////////////////////////////////////////////////
+
+OpenMP Prefix Scan
+n = 4194304: 3 4 11 11 12 16 21 30 4194326
+Inclusive Prefix Scan - took - 5 milliseconds
+
+///////////////////////////////////////////////////////////
+
+OpenMP Prefix Scan
+n = 16777216: 3 4 11 11 12 16 21 30 16777238
+Inclusive Prefix Scan - took - 16 milliseconds
+
+///////////////////////////////////////////////////////////
+
+OpenMP Prefix Scan
+n = 67108864: 3 4 11 11 12 16 21 30 67108886
+Inclusive Prefix Scan - took - 45 milliseconds
+
+
+///////////////////////////////////////////////////////////
+
+TBB Prefix Scan - auto partitioning
+n = 4194304: 3 4 11 11 12 16 21 30 0
+Inclusive Prefix Scan - took - 0 milliseconds
+
+
+///////////////////////////////////////////////////////////
+
+TBB Prefix Scan - auto partitioning
+n = 16777216: 3 4 11 11 12 16 21 30 0
+Inclusive Prefix Scan - took - 0 milliseconds
+
+///////////////////////////////////////////////////////////
+
+TBB Prefix Scan - auto partitioning
+n = 67108864: 3 4 11 11 12 16 21 30 0
+Inclusive Prefix Scan - took - 0 milliseconds
+
+///////////////////////////////////////////////////////////
+
+TBB Prefix Scan - grainsize = 10
+n = 4194304: 3 4 11 11 12 16 21 30 4194326
+Inclusive Prefix Scan - took - 8 milliseconds
+
+///////////////////////////////////////////////////////////
+
+TBB Prefix Scan - grainsize = 10
+n = 16777216: 3 4 11 11 12 16 21 30 16777238
+Inclusive Prefix Scan - took - 27 milliseconds
+
+///////////////////////////////////////////////////////////
+
+TBB Prefix Scan - grainsize = 10
+n = 67108864: 3 4 11 11 12 16 21 30 67108886
+Inclusive Prefix Scan - took - 101 milliseconds
+
+///////////////////////////////////////////////////////////
+
+TBB Prefix Scan - grainsize = 100
+n = 4194304: 3 4 11 11 12 16 21 30 4194326
+Inclusive Prefix Scan - took - 8 milliseconds
+
+///////////////////////////////////////////////////////////
+
+TBB Prefix Scan - grainsize = 100
+n = 16777216: 3 4 11 11 12 16 21 30 16777238
+Inclusive Prefix Scan - took - 26 milliseconds
+
+///////////////////////////////////////////////////////////
+
+TBB Prefix Scan - grainsize = 100
+n = 67108864: 3 4 11 11 12 16 21 30 67108886
+Inclusive Prefix Scan - took - 109 milliseconds
+
+///////////////////////////////////////////////////////////
+
+TBB Prefix Scan - grainsize = 1000
+n = 4194304: 3 4 11 11 12 16 21 30 4194326
+Inclusive Prefix Scan - took - 7 milliseconds
+
+///////////////////////////////////////////////////////////
+
+TBB Prefix Scan - grainsize = 1000
+n = 16777216: 3 4 11 11 12 16 21 30 16777238
+Inclusive Prefix Scan - took - 32 milliseconds
+
+///////////////////////////////////////////////////////////
+
+TBB Prefix Scan - grainsize = 1000
+n = 67108864: 3 4 11 11 12 16 21 30 67108886
+Inclusive Prefix Scan - took - 110 milliseconds
+
+///////////////////////////////////////////////////////////
