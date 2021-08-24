@@ -1,0 +1,560 @@
+//Hung Truong - 147779193 - htruong19@myseneca.ca
+
+// Workshop 5 - Matrix Multiplication - Tasks - Baseline
+ // MatMul.cpp
+ // 2018.10.27
+ // Chris Szalwinski
+ // 2021.07.10
+ // Hung Truong - Serial untiled no loop interchange
+
+ #include "MatMul.h"
+ /* Untiled Version
+ */
+ // matmul returns the product c = a * b
+ //
+
+ void matmul(const row a[], const row b[], row c[], int n) {
+     {
+             for (int i = 0; i < n; i++) {
+                 for (int j = 0; j < n; j++) {
+                     for (int k = 0; k < n; k++) {
+                         c[i][j] += a[i][k] * b[k][j];
+                     }
+                 }
+             }
+     }
+ }
+ 
+ // End Untiled Version
+
+ // checksum returns the sum of the coefficients in matrix x[rows][cols]
+ //
+ double checksum(const row x[]) {
+
+     double sum = 0.0;
+     for (int i = 0; i < N; i++) {
+         for (int j = 0; j < N; j++) {
+             sum += x[i][j];
+         }
+     }
+     return sum;
+ }
+
+ // initialize initializes matrix a[rows][cols]
+ //
+ void initialize(row a[]) {
+
+     for (int i = 0; i < N; i++) {
+         for (int j = 0; j < N; j++) {
+             a[i][j] = 0.0;
+         }
+         a[i][i] = 1.0;
+     }
+ }
+
+//////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
+
+// Workshop 5 - Matrix Multiplication - Tasks - Baseline
+ // MatMul.cpp
+ // 2018.10.27
+ // Chris Szalwinski
+ // 2021.07.10
+ // Hung Truong - Serial untiled with loop interchange
+
+ #include "MatMul.h"
+ /* Untiled Version
+ */
+ // matmul returns the product c = a * b
+ //
+
+ void matmul(const row a[], const row b[], row c[], int n) {
+     {
+             for (int i = 0; i < n; i++) {
+                 for (int k = 0; k < n; k++) {
+                     for (int j = 0; j < n; j++) {
+                         c[i][j] += a[i][k] * b[k][j];
+                     }
+                 }
+             }
+     }
+ }
+ 
+ // End Untiled Version
+
+ // checksum returns the sum of the coefficients in matrix x[rows][cols]
+ //
+ double checksum(const row x[]) {
+
+     double sum = 0.0;
+     for (int i = 0; i < N; i++) {
+         for (int j = 0; j < N; j++) {
+             sum += x[i][j];
+         }
+     }
+     return sum;
+ }
+
+ // initialize initializes matrix a[rows][cols]
+ //
+ void initialize(row a[]) {
+
+     for (int i = 0; i < N; i++) {
+         for (int j = 0; j < N; j++) {
+             a[i][j] = 0.0;
+         }
+         a[i][i] = 1.0;
+     }
+ }
+
+
+//////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
+
+// Workshop 5 - Matrix Multiplication - Tasks - Baseline
+ // MatMul.cpp
+ // 2018.10.27
+ // Chris Szalwinski
+ // 2021.07.10
+ // Hung Truong - Serial untiled with loop interchange and vectorize innermost loop
+
+ #include "MatMul.h"
+#include <omp.h>
+ /* Untiled Version
+ */
+ // matmul returns the product c = a * b
+ //
+
+ void matmul(const row a[], const row b[], row c[], int n) {
+    for (int i = 0; i < n; i++) {
+        for (int k = 0; k < n; k++) {
+#pragma omp for simd
+            for (int j = 0; j < n; j++) {
+                c[i][j] += a[i][k] * b[k][j];
+            }
+        }
+    }
+ }
+ 
+ // End Untiled Version
+
+ // checksum returns the sum of the coefficients in matrix x[rows][cols]
+ //
+ double checksum(const row x[]) {
+
+     double sum = 0.0;
+     for (int i = 0; i < N; i++) {
+         for (int j = 0; j < N; j++) {
+             sum += x[i][j];
+         }
+     }
+     return sum;
+ }
+
+ // initialize initializes matrix a[rows][cols]
+ //
+ void initialize(row a[]) {
+
+     for (int i = 0; i < N; i++) {
+         for (int j = 0; j < N; j++) {
+             a[i][j] = 0.0;
+         }
+         a[i][i] = 1.0;
+     }
+ }
+
+
+//////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
+
+// Workshop 5 - Matrix Multiplication - Tasks - Baseline
+ // MatMul.cpp
+ // 2018.10.27
+ // Chris Szalwinski
+ // 2021.07.10
+ // Hung Truong - Worksharing untiled version no loop interchange
+
+ #include "MatMul.h"
+#include <omp.h>
+ /* Untiled Version
+ */
+ // matmul returns the product c = a * b
+ //
+
+ void matmul(const row a[], const row b[], row c[], int n) {
+#pragma omp parallel
+     {
+#pragma omp for
+         for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                for (int k = 0; k < n; k++) {
+                    c[i][j] += a[i][k] * b[k][j];
+                }
+            }
+         }
+     }
+
+ }
+ 
+ // End Untiled Version
+
+ // checksum returns the sum of the coefficients in matrix x[rows][cols]
+ //
+ double checksum(const row x[]) {
+
+     double sum = 0.0;
+     for (int i = 0; i < N; i++) {
+         for (int j = 0; j < N; j++) {
+             sum += x[i][j];
+         }
+     }
+     return sum;
+ }
+
+ // initialize initializes matrix a[rows][cols]
+ //
+ void initialize(row a[]) {
+
+     for (int i = 0; i < N; i++) {
+         for (int j = 0; j < N; j++) {
+             a[i][j] = 0.0;
+         }
+         a[i][i] = 1.0;
+     }
+ }
+
+//////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
+
+
+// Workshop 5 - Matrix Multiplication - Tasks - Baseline
+ // MatMul.cpp
+ // 2018.10.27
+ // Chris Szalwinski
+ // 2021.07.10
+ // Hung Truong - Worksharing untiled version with loop interchange
+
+ #include "MatMul.h"
+#include <omp.h>
+ /* Untiled Version
+ */
+ // matmul returns the product c = a * b
+ //
+
+ void matmul(const row a[], const row b[], row c[], int n) {
+#pragma omp parallel
+     {
+#pragma omp for
+         for (int i = 0; i < n; i++) {
+            for (int k = 0; k < n; k++) {
+                for (int j = 0; j < n; j++) {
+                    c[i][j] += a[i][k] * b[k][j];
+                }
+            }
+         }
+     }
+
+ }
+ 
+ // End Untiled Version
+
+ // checksum returns the sum of the coefficients in matrix x[rows][cols]
+ //
+ double checksum(const row x[]) {
+
+     double sum = 0.0;
+     for (int i = 0; i < N; i++) {
+         for (int j = 0; j < N; j++) {
+             sum += x[i][j];
+         }
+     }
+     return sum;
+ }
+
+ // initialize initializes matrix a[rows][cols]
+ //
+ void initialize(row a[]) {
+
+     for (int i = 0; i < N; i++) {
+         for (int j = 0; j < N; j++) {
+             a[i][j] = 0.0;
+         }
+         a[i][i] = 1.0;
+     }
+ }
+
+//////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
+
+
+// Workshop 5 - Matrix Multiplication - Tasks - Baseline
+ // MatMul.cpp
+ // 2018.10.27
+ // Chris Szalwinski
+ // 2021.07.10
+ // Hung Truong - Worksharing untiled version with loop interchange and vectorize innermost loop
+
+ #include "MatMul.h"
+#include <omp.h>
+ /* Untiled Version
+ */
+ // matmul returns the product c = a * b
+ //
+
+ void matmul(const row a[], const row b[], row c[], int n) {
+#pragma omp parallel
+     {
+#pragma omp for
+         for (int i = 0; i < n; i++) {
+            for (int k = 0; k < n; k++) {
+#pragma omp simd
+                for (int j = 0; j < n; j++) {
+                    c[i][j] += a[i][k] * b[k][j];
+                }
+            }
+         }
+     }
+
+ }
+ 
+ // End Untiled Version
+
+ // checksum returns the sum of the coefficients in matrix x[rows][cols]
+ //
+ double checksum(const row x[]) {
+
+     double sum = 0.0;
+     for (int i = 0; i < N; i++) {
+         for (int j = 0; j < N; j++) {
+             sum += x[i][j];
+         }
+     }
+     return sum;
+ }
+
+ // initialize initializes matrix a[rows][cols]
+ //
+ void initialize(row a[]) {
+
+     for (int i = 0; i < N; i++) {
+         for (int j = 0; j < N; j++) {
+             a[i][j] = 0.0;
+         }
+         a[i][i] = 1.0;
+     }
+ }
+
+//////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
+
+// Workshop 5 - Matrix Multiplication - Tasks - Baseline
+ // MatMul.cpp
+ // 2018.10.27
+ // Chris Szalwinski
+ // 2021.07.10
+ // Hung Truong - tiled version standard nesting using parallel region in single thread
+ //               with task's three dependencies with depend clause
+
+ #include "MatMul.h"
+#include <omp.h>
+ 
+ /* Tiled Version
+ */
+ // matmul returns the product c = a * b
+ //
+
+void matmul(const row a[], const row b[], row c[], int n) {
+#pragma omp parallel
+    {
+#pragma omp single
+        {
+            for (int i = 0; i < n; i += M) {
+                for (int j = 0; j < n; j += M) {
+                    for (int k = 0; k < n; k += M) {
+#pragma omp task depend(in: a[i:M][k:M], b[k:M][j:M]) depend(inout: c[i:M][j:M])
+                        {
+                            for (int ii = i; ii < i + M; ii++) {
+                                for (int jj = j; jj < j + M; jj++) {
+                                    for (int kk = k; kk < k + M; kk++) {
+                                        c[ii][jj] += a[ii][kk] * b[kk][jj];
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+ 
+  // End Tiled Version
+
+ // checksum returns the sum of the coefficients in matrix x[rows][cols]
+ //
+ double checksum(const row x[]) {
+
+     double sum = 0.0;
+     for (int i = 0; i < N; i++) {
+         for (int j = 0; j < N; j++) {
+             sum += x[i][j];
+         }
+     }
+     return sum;
+ }
+
+ // initialize initializes matrix a[rows][cols]
+ //
+ void initialize(row a[]) {
+
+     for (int i = 0; i < N; i++) {
+         for (int j = 0; j < N; j++) {
+             a[i][j] = 0.0;
+         }
+         a[i][i] = 1.0;
+     }
+ }
+
+//////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
+
+// Workshop 5 - Matrix Multiplication - Tasks - Baseline
+ // MatMul.cpp
+ // 2018.10.27
+ // Chris Szalwinski
+ // 2021.07.10
+ // Hung Truong - tiled version standard nesting using parallel region in single thread
+ //               with task's three dependencies with depend clause and loop interchange
+
+ #include "MatMul.h"
+#include <omp.h>
+ 
+ /* Tiled Version
+ */
+ // matmul returns the product c = a * b
+ //
+
+void matmul(const row a[], const row b[], row c[], int n) {
+#pragma omp parallel
+    {
+#pragma omp single
+        {
+            for (int i = 0; i < n; i += M) {
+                for (int k = 0; k < n; k += M) {
+                    for (int j = 0; j < n; j += M) {
+#pragma omp task depend(in: a[i:M][k:M], b[k:M][j:M]) depend(inout: c[i:M][j:M])
+                        {
+                            for (int ii = i; ii < i + M; ii++) {
+                                for (int kk = k; kk < k + M; kk++) {
+                                    for (int jj = j; jj < j + M; jj++) {
+                                        c[ii][jj] += a[ii][kk] * b[kk][jj];
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+ 
+  // End Tiled Version
+
+ // checksum returns the sum of the coefficients in matrix x[rows][cols]
+ //
+ double checksum(const row x[]) {
+
+     double sum = 0.0;
+     for (int i = 0; i < N; i++) {
+         for (int j = 0; j < N; j++) {
+             sum += x[i][j];
+         }
+     }
+     return sum;
+ }
+
+ // initialize initializes matrix a[rows][cols]
+ //
+ void initialize(row a[]) {
+
+     for (int i = 0; i < N; i++) {
+         for (int j = 0; j < N; j++) {
+             a[i][j] = 0.0;
+         }
+         a[i][i] = 1.0;
+     }
+ }
+
+//////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
+
+// Workshop 5 - Matrix Multiplication - Tasks - Baseline
+ // MatMul.cpp
+ // 2018.10.27
+ // Chris Szalwinski
+ // 2021.07.10
+ // Hung Truong - tiled version standard nesting using parallel region in single thread
+ //               with task's three dependencies with depend clause, loop interchange
+ //               and vectorization of innermost loop
+
+ #include "MatMul.h"
+#include <omp.h>
+ 
+ /* Tiled Version
+ */
+ // matmul returns the product c = a * b
+ //
+
+void matmul(const row a[], const row b[], row c[], int n) {
+#pragma omp parallel
+    {
+#pragma omp single
+        {
+            for (int i = 0; i < n; i += M) {
+                for (int k = 0; k < n; k += M) {
+                    for (int j = 0; j < n; j += M) {
+#pragma omp task depend(in: a[i:M][k:M], b[k:M][j:M]) depend(inout: c[i:M][j:M])
+                        {
+                            for (int ii = i; ii < i + M; ii++) {
+                                for (int kk = k; kk < k + M; kk++) {
+#pragma omp parallel for simd
+                                    for (int jj = j; jj < j + M; jj++) {
+                                        c[ii][jj] += a[ii][kk] * b[kk][jj];
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+ 
+  // End Tiled Version
+
+ // checksum returns the sum of the coefficients in matrix x[rows][cols]
+ //
+ double checksum(const row x[]) {
+
+     double sum = 0.0;
+     for (int i = 0; i < N; i++) {
+         for (int j = 0; j < N; j++) {
+             sum += x[i][j];
+         }
+     }
+     return sum;
+ }
+
+ // initialize initializes matrix a[rows][cols]
+ //
+ void initialize(row a[]) {
+
+     for (int i = 0; i < N; i++) {
+         for (int j = 0; j < N; j++) {
+             a[i][j] = 0.0;
+         }
+         a[i][i] = 1.0;
+     }
+ }

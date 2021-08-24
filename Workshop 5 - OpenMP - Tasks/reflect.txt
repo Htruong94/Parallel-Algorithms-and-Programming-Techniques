@@ -1,0 +1,12 @@
+/**********************************************************
+ * Name: Hung Truong
+ * Student ID: 147779193
+ * Workshop 5 - Reflection
+ * Date: July 10, 2021
+ * Email: htruong19@myseneca.ca
+ * GPU621 NSA
+ **********************************************************/
+
+	In this workshop, the main learning point that was focus on was the implementation of openMP tasks and implementing to a program and compare the performance from past methods. Task was implemented in the tiled version of the matmul function which taught me what algorithms tasks should be implemented correctly as seen with the dependencies of the a and b variable as an in and c as both an inout. By changing the task chunk size in the program, the performance is impacted in different degrees between the three algorithms worked on in this workshop. In the standard nesting algorithm, a task chunk size of 32 is the optimal and anything above 128 seems to impact the performance significantly and negatively. This follows similar patterns in loop interchange algorithm but the algorithm with loop interchange and vectorization, the optimal task chunk size is 256. Loop interchange and vectorization also has the best performance compared to the other two algorithms but requires a higher chunk size to have a better performance while loop interchange has a better performance over standard nesting regardless of task chunk size.  
+	
+	I speculate that the optimal task chunk is dependent on the algorithms with the number of threads being used in the algorithm. As loop interchange and standard nesting requires a single thread, the single thread will go through a task so a lower chunk size would perform better than a higher chunk size as the thread have a lower number of tasks in the parallel region. In comparison with the loop interchange and vectorization algorithm has a parallel region within the task so a higher chunk size would result in a better performance as the parallel region can perform the tasks in multiple threads which the single thread algorithms would perform poorly in.
